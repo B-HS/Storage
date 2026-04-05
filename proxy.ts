@@ -16,7 +16,7 @@ const CSP_HEADER = [
     "form-action 'self'",
 ].join('; ')
 
-export const middleware = (request: NextRequest) => {
+export const proxy = (request: NextRequest) => {
     const existingLocale = request.cookies.get(LOCALE_COOKIE)?.value
     let locale = existingLocale && SUPPORTED.includes(existingLocale) ? existingLocale : null
 
