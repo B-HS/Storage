@@ -128,6 +128,17 @@ const StorageLayout: FC<StorageLayoutProps> = ({ userId }) => {
     const handleNavigateRoot = () => setCurrentFolderId(null)
     const handleNavigateBreadcrumb = (folderId: string) => setCurrentFolderId(folderId)
 
+    const MAX_CONCURRENT_UPLOADS = 3
+    const uploadQueueRef = useRef<(() => void)[]>([])
+    const activeUploadsRef = useRef(0)
+
+    const processUploadQueue = () => {
+        while (activeUploadsRef.current < MAX_CONCURRENT_UPLOADS && uploadQueueRef.current.length > 0) {
+            const next = uploadQueueRef.current.shift()
+            if (next) next()
+        }
+    }
+
     const handleUpload = (files: File[]) => {
         files.forEach((file) => {
             const validationError = validateBeforeUpload(file)
@@ -143,23 +154,33 @@ const StorageLayout: FC<StorageLayoutProps> = ({ userId }) => {
             }
 
             const uploadId = crypto.randomUUID()
-            store.addUpload({ id: uploadId, fileName: file.name, progress: 0, status: 'uploading' })
+            store.addUpload({ id: uploadId, fileName: file.name, progress: 0, status: 'pending' })
 
-            uploadFileWithProgress(file, currentFolderId, (pct) => {
-                store.updateUploadProgress(uploadId, pct)
+            uploadQueueRef.current.push(() => {
+                activeUploadsRef.current++
+                store.updateUploadStatus(uploadId, 'uploading')
+
+                uploadFileWithProgress(file, currentFolderId, (pct) => {
+                    store.updateUploadProgress(uploadId, pct)
+                })
+                    .then(() => {
+                        store.updateUploadStatus(uploadId, 'done')
+                        toast.success(t.uploadSuccess)
+                        queryClient.invalidateQueries({ queryKey: DRIVE_QUERY_KEY.assets(userId) })
+                        queryClient.invalidateQueries({ queryKey: DRIVE_QUERY_KEY.quota(userId) })
+                    })
+                    .catch((error) => {
+                        store.updateUploadStatus(uploadId, 'error')
+                        toast.error(getDriveErrorMessage(error, t))
+                        queryClient.invalidateQueries({ queryKey: DRIVE_QUERY_KEY.assets(userId) })
+                    })
+                    .finally(() => {
+                        activeUploadsRef.current--
+                        processUploadQueue()
+                    })
             })
-                .then(() => {
-                    store.updateUploadStatus(uploadId, 'done')
-                    toast.success(t.uploadSuccess)
-                    queryClient.invalidateQueries({ queryKey: DRIVE_QUERY_KEY.assets(userId) })
-                    queryClient.invalidateQueries({ queryKey: DRIVE_QUERY_KEY.quota(userId) })
-                })
-                .catch((error) => {
-                    store.updateUploadStatus(uploadId, 'error')
-                    toast.error(getDriveErrorMessage(error, t))
-                    queryClient.invalidateQueries({ queryKey: DRIVE_QUERY_KEY.assets(userId) })
-                })
         })
+        processUploadQueue()
     }
 
     const handleUploadClick = () => fileInputRef.current?.click()
