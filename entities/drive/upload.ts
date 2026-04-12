@@ -38,7 +38,15 @@ type PrepareResult = {
     uploadStatus: string
 }
 
-const prepareUpload = async (file: File, folderId: string | null): Promise<PrepareResult> => {
+const computeFileHash = async (file: File): Promise<string> => {
+    const buffer = await file.arrayBuffer()
+    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer)
+    return Array.from(new Uint8Array(hashBuffer))
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join('')
+}
+
+const prepareUpload = async (file: File, folderId: string | null, fileHash: string): Promise<PrepareResult> => {
     const res = await fetch(`${API_BASE_URL}${DRIVE_API_PATH.ASSETS}/prepare`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -48,6 +56,7 @@ const prepareUpload = async (file: File, folderId: string | null): Promise<Prepa
             mimeType: file.type,
             sizeBytes: file.size,
             folderId,
+            fileHash,
         }),
     })
 
@@ -59,7 +68,8 @@ const prepareUpload = async (file: File, folderId: string | null): Promise<Prepa
 }
 
 export const uploadFileWithProgress = async (file: File, folderId: string | null, onProgress: (pct: number) => void) => {
-    const prepared = await prepareUpload(file, folderId)
+    const fileHash = await computeFileHash(file)
+    const prepared = await prepareUpload(file, folderId, fileHash)
 
     return new Promise<{ success: true; assetId: number }>((resolve, reject) => {
         const xhr = new XMLHttpRequest()
