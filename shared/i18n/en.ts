@@ -92,6 +92,8 @@ export const en: TranslationKeys = {
     folderCreated: 'Folder created.',
     renameSuccess: 'Renamed successfully.',
     deleteSuccess: 'Deleted successfully.',
+    deleting: (current: number, total: number) => `Deleting... (${current}/${total})`,
+    deletePartialFail: (failed: number, total: number) => `${failed} of ${total} failed to delete.`,
     uploadSuccess: 'Upload complete.',
 
     errorFileTooLarge: 'File size exceeds the upload limit.',

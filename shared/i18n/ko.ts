@@ -92,6 +92,8 @@ export const ko: TranslationKeys = {
     folderCreated: '폴더가 생성되었습니다.',
     renameSuccess: '이름이 변경되었습니다.',
     deleteSuccess: '삭제되었습니다.',
+    deleting: (current: number, total: number) => `삭제 중... (${current}/${total})`,
+    deletePartialFail: (failed: number, total: number) => `${total}개 중 ${failed}개 삭제에 실패했습니다.`,
     uploadSuccess: '업로드가 완료되었습니다.',
 
     errorFileTooLarge: '파일 크기가 업로드 제한을 초과했습니다.',

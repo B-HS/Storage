@@ -1,8 +1,11 @@
 'use client'
 
 import type { FC } from 'react'
+import { toast } from 'sonner'
 import { getItemName } from '@entities/drive/util'
-import { useDeleteFolder, useDeleteAsset } from '@entities/drive/query'
+import { deleteAsset, deleteFolder } from '@entities/drive/api'
+import { DRIVE_QUERY_KEY } from '@entities/drive/query-options'
+import { useQueryClient } from '@tanstack/react-query'
 import { useT } from '@shared/provider/i18n-provider'
 import {
     AlertDialog,
@@ -23,19 +26,39 @@ type DeleteConfirmDialogProps = {
 const DeleteConfirmDialog: FC<DeleteConfirmDialogProps> = ({ userId }) => {
     const { deleteTarget, setDeleteTarget, clearSelection } = useStorageStore()
     const { t } = useT()
-    const deleteFolderMutation = useDeleteFolder(userId)
-    const deleteAssetMutation = useDeleteAsset(userId)
+    const queryClient = useQueryClient()
 
-    const isPending = deleteFolderMutation.isPending || deleteAssetMutation.isPending
-
-    const handleConfirm = () => {
-        if (!deleteTarget) return
-        deleteTarget.forEach((item) => {
-            if (item.kind === 'folder') deleteFolderMutation.mutate(item.data.id)
-            else deleteAssetMutation.mutate(item.data.id)
-        })
+    const handleConfirm = async () => {
+        if (!deleteTarget || deleteTarget.length === 0) return
+        const items = [...deleteTarget]
         setDeleteTarget(null)
         clearSelection()
+
+        const total = items.length
+        let completed = 0
+        let failed = 0
+
+        const toastId = toast.loading(t.deleting(0, total))
+
+        for (const item of items) {
+            try {
+                if (item.kind === 'folder') await deleteFolder(item.data.id)
+                else await deleteAsset(item.data.id)
+                completed++
+            } catch {
+                failed++
+            }
+            toast.loading(t.deleting(completed + failed, total), { id: toastId })
+        }
+
+        if (failed === 0) {
+            toast.success(t.deleteSuccess, { id: toastId })
+        } else {
+            toast.error(t.deletePartialFail(failed, total), { id: toastId })
+        }
+
+        queryClient.invalidateQueries({ queryKey: DRIVE_QUERY_KEY.all(userId) })
+        queryClient.invalidateQueries({ queryKey: DRIVE_QUERY_KEY.quota(userId) })
     }
 
     const isOpen = deleteTarget !== null && deleteTarget.length > 0
@@ -51,9 +74,7 @@ const DeleteConfirmDialog: FC<DeleteConfirmDialogProps> = ({ userId }) => {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleConfirm} disabled={isPending}>
-                        {isPending ? '...' : t.delete}
-                    </AlertDialogAction>
+                    <AlertDialogAction onClick={handleConfirm}>{t.delete}</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>

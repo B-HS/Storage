@@ -92,6 +92,8 @@ export type TranslationKeys = {
     folderCreated: string
     renameSuccess: string
     deleteSuccess: string
+    deleting: (current: number, total: number) => string
+    deletePartialFail: (failed: number, total: number) => string
     uploadSuccess: string
 
     errorFileTooLarge: string

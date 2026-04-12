@@ -92,6 +92,8 @@ export const jp: TranslationKeys = {
     folderCreated: 'フォルダが作成されました。',
     renameSuccess: '名前が変更されました。',
     deleteSuccess: '削除されました。',
+    deleting: (current: number, total: number) => `削除中... (${current}/${total})`,
+    deletePartialFail: (failed: number, total: number) => `${total}件中${failed}件の削除に失敗しました。`,
     uploadSuccess: 'アップロードが完了しました。',
 
     errorFileTooLarge: 'ファイルサイズがアップロード制限を超えています。',
