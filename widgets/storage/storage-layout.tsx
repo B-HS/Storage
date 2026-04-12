@@ -130,7 +130,7 @@ const StorageLayout: FC<StorageLayoutProps> = ({ userId }) => {
     const handleNavigateRoot = () => setCurrentFolderId(null)
     const handleNavigateBreadcrumb = (folderId: string) => setCurrentFolderId(folderId)
 
-    const MAX_CONCURRENT_UPLOADS = 3
+    const MAX_CONCURRENT_UPLOADS = 5
     const uploadQueueRef = useRef<(() => void)[]>([])
     const activeUploadsRef = useRef(0)
 

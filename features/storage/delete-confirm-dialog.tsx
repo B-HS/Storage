@@ -24,7 +24,7 @@ type DeleteConfirmDialogProps = {
 }
 
 const DeleteConfirmDialog: FC<DeleteConfirmDialogProps> = ({ userId }) => {
-    const { deleteTarget, setDeleteTarget, clearSelection } = useStorageStore()
+    const { deleteTarget, setDeleteTarget, clearSelection, setDeleteProgress } = useStorageStore()
     const { t } = useT()
     const queryClient = useQueryClient()
 
@@ -38,7 +38,7 @@ const DeleteConfirmDialog: FC<DeleteConfirmDialogProps> = ({ userId }) => {
         let completed = 0
         let failed = 0
 
-        const toastId = toast.loading(t.deleting(0, total))
+        setDeleteProgress({ current: 0, total, failed: 0 })
 
         for (const item of items) {
             try {
@@ -48,17 +48,17 @@ const DeleteConfirmDialog: FC<DeleteConfirmDialogProps> = ({ userId }) => {
             } catch {
                 failed++
             }
-            toast.loading(t.deleting(completed + failed, total), { id: toastId })
-        }
-
-        if (failed === 0) {
-            toast.success(t.deleteSuccess, { id: toastId })
-        } else {
-            toast.error(t.deletePartialFail(failed, total), { id: toastId })
+            setDeleteProgress({ current: completed + failed, total, failed })
         }
 
         queryClient.invalidateQueries({ queryKey: DRIVE_QUERY_KEY.all(userId) })
         queryClient.invalidateQueries({ queryKey: DRIVE_QUERY_KEY.quota(userId) })
+
+        if (failed > 0) {
+            toast.error(t.deletePartialFail(failed, total))
+        }
+
+        setTimeout(() => setDeleteProgress(null), 2000)
     }
 
     const isOpen = deleteTarget !== null && deleteTarget.length > 0

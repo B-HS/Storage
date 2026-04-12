@@ -68,6 +68,9 @@ type StorageStore = {
     updateUploadStatus: (id: string, status: UploadItem['status'], error?: string) => void
     removeUpload: (id: string) => void
     clearCompletedUploads: () => void
+
+    deleteProgress: { current: number; total: number; failed: number } | null
+    setDeleteProgress: (progress: { current: number; total: number; failed: number } | null) => void
 }
 
 export const useStorageStore = create<StorageStore>((set, get) => ({
@@ -128,4 +131,7 @@ export const useStorageStore = create<StorageStore>((set, get) => ({
         })),
     removeUpload: (id) => set((state) => ({ uploadQueue: state.uploadQueue.filter((u) => u.id !== id) })),
     clearCompletedUploads: () => set((state) => ({ uploadQueue: state.uploadQueue.filter((u) => u.status !== 'done') })),
+
+    deleteProgress: null,
+    setDeleteProgress: (progress) => set({ deleteProgress: progress }),
 }))
