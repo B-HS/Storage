@@ -36,6 +36,8 @@ type PrepareResult = {
     s3Key: string
     uploadToken: string
     uploadStatus: string
+    gdriveAccessToken: string | null
+    gdriveRootFolderId: string | null
 }
 
 const computeFileHash = async (file: File): Promise<string> => {
@@ -78,6 +80,8 @@ export const uploadFileWithProgress = async (file: File, folderId: string | null
         formData.append('assetId', String(prepared.assetId))
         formData.append('s3Key', prepared.s3Key)
         formData.append('uploadToken', prepared.uploadToken)
+        if (prepared.gdriveAccessToken) formData.append('gdriveAccessToken', prepared.gdriveAccessToken)
+        if (prepared.gdriveRootFolderId) formData.append('gdriveRootFolderId', prepared.gdriveRootFolderId)
 
         xhr.upload.onprogress = (e) => {
             if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100))
