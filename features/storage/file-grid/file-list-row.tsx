@@ -10,6 +10,7 @@ import { getFileIcon } from '@shared/util/file-icon-map'
 import { formatFileSize } from '@shared/util/format-file-size'
 import { cn } from '@shared/util/utils'
 import { Checkbox } from '@shared/ui/checkbox'
+import { useIsMobile } from '@shared/hook/use-media-query'
 import { useStorageStore } from '@shared/store/storage-store'
 import { FileContextMenu } from '@/features/storage/file-context-menu'
 
@@ -19,6 +20,7 @@ type FileListRowProps = {
 }
 
 const FileListRow: FC<FileListRowProps> = ({ item, onNavigateFolder }) => {
+    const isMobile = useIsMobile()
     const { toggleSelect, isSelected, setDetailItem, setPreview } = useStorageStore()
     const { locale } = useT()
     const id = getItemId(item)
@@ -26,16 +28,27 @@ const FileListRow: FC<FileListRowProps> = ({ item, onNavigateFolder }) => {
     const selected = isSelected(id)
     const isFolder = item.kind === 'folder'
     const isImage = isImageAsset(item)
+    const isPreparing = item.kind === 'asset' && (item.data.uploadStatus === 'preparing' || item.data.uploadStatus === 'uploading')
     const { icon: FileIconComp } = getFileIcon(name)
 
     const { onClick } = useDoubleClick({
         onSingleClick: () => {
-            toggleSelect(id)
-            setDetailItem(item)
+            if (isMobile) {
+                if (isFolder) onNavigateFolder?.(item.data.id)
+                else {
+                    toggleSelect(id)
+                    setDetailItem(item)
+                }
+            } else {
+                toggleSelect(id)
+                setDetailItem(item)
+            }
         },
         onDoubleClick: () => {
-            if (isFolder) onNavigateFolder?.(item.data.id)
-            else if (isImage && item.kind === 'asset') setPreview(item.data, item.data.thumbnail)
+            if (!isMobile) {
+                if (isFolder) onNavigateFolder?.(item.data.id)
+                else if (isImage && item.kind === 'asset') setPreview(item.data, item.data.thumbnail)
+            }
         },
     })
 
@@ -50,16 +63,16 @@ const FileListRow: FC<FileListRowProps> = ({ item, onNavigateFolder }) => {
         <FileContextMenu item={item}>
             <div
                 onClick={onClick}
-                className={cn('flex cursor-pointer items-center gap-3 border-b px-4 py-2 text-sm hover:bg-muted', selected && 'bg-muted')}>
+                className={cn('flex cursor-pointer items-center gap-3 border-b px-4 py-2 text-sm hover:bg-muted', selected && 'bg-muted', isPreparing && 'opacity-60 animate-pulse')}>
                 <Checkbox checked={selected} onCheckedChange={() => toggleSelect(id)} onClick={(e) => e.stopPropagation()} />
                 {isFolder ? (
                     <FolderIcon className='size-4 shrink-0 text-primary' weight='duotone' />
                 ) : (
                     <FileIconComp className='size-4 shrink-0 text-muted-foreground' />
                 )}
-                <span className='min-w-0 flex-1 truncate'>{name}</span>
+                <span className={cn('min-w-0 flex-1 truncate', isPreparing && 'text-muted-foreground')}>{name}</span>
                 <span className='w-20 shrink-0 text-right text-xs text-muted-foreground'>
-                    {item.kind === 'asset' ? formatFileSize(item.data.sizeBytes) : '-'}
+                    {item.kind === 'asset' ? (isPreparing ? '업로드 중...' : item.data.uploadStatus === 'failed' ? '실패' : formatFileSize(item.data.sizeBytes)) : '-'}
                 </span>
                 <span className='hidden w-24 shrink-0 text-right text-xs text-muted-foreground sm:block'>{formattedDate}</span>
             </div>
