@@ -1,10 +1,12 @@
 'use client'
 
-import type { FC } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { FolderIcon, GlobeIcon, LockIcon, XIcon } from '@phosphor-icons/react'
-import { getItemName } from '@entities/drive/util'
+import type { FC } from 'react'
+import { getItemName, isImageAsset } from '@entities/drive/util'
 import { useUpdateAsset } from '@entities/drive/query'
+import { API_BASE_URL, DRIVE_API_PATH } from '@shared/constant/api'
 import { useT } from '@shared/provider/i18n-provider'
 import { getFileIcon } from '@shared/util/file-icon-map'
 import { formatFileSize } from '@shared/util/format-file-size'
@@ -26,6 +28,26 @@ const FileDetailPanel: FC<FileDetailPanelProps> = ({ userId }) => {
     const updateAssetMutation = useUpdateAsset(userId)
     const isMobile = useMediaQuery('(max-width: 768px)')
 
+    const detailAssetId = detailItem?.kind === 'asset' ? detailItem.data.id : null
+    const isImage = detailItem ? isImageAsset(detailItem) : false
+    const [fullImage, setFullImage] = useState<{ id: number; url: string } | null>(null)
+
+    useEffect(() => {
+        if (!detailAssetId || !isImage) return
+
+        const controller = new AbortController()
+        fetch(`${API_BASE_URL}${DRIVE_API_PATH.ASSET(detailAssetId)}`, { credentials: 'include', signal: controller.signal })
+            .then((res) => res.json())
+            .then((json: { success: boolean; data: { url: string } }) => {
+                if (json.success) setFullImage({ id: detailAssetId, url: json.data.url })
+            })
+            .catch(() => {})
+
+        return () => controller.abort()
+    }, [detailAssetId, isImage])
+
+    const fullImageUrl = fullImage?.id === detailAssetId ? fullImage.url : null
+
     if (!detailItem) return null
 
     const isFolder = detailItem.kind === 'folder'
@@ -33,6 +55,7 @@ const FileDetailPanel: FC<FileDetailPanelProps> = ({ userId }) => {
     const { icon: FileTypeIcon } = getFileIcon(name)
     const ext = name.split('.').pop()?.toUpperCase() ?? ''
     const thumbnail = detailItem.kind === 'asset' ? detailItem.data.thumbnail : null
+    const previewSrc = fullImageUrl ?? thumbnail
 
     const dateLocale = locale === 'jp' ? 'ja-JP' : locale === 'en' ? 'en-US' : 'ko-KR'
     const dateOpts: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }
@@ -61,9 +84,9 @@ const FileDetailPanel: FC<FileDetailPanelProps> = ({ userId }) => {
                 <Separator />
 
                 <div className='flex flex-col items-center gap-3'>
-                    {thumbnail ? (
+                    {previewSrc ? (
                         <div className='relative aspect-video w-full overflow-hidden border'>
-                            <Image src={thumbnail} alt={name} fill className='object-cover' sizes='288px' />
+                            <Image src={previewSrc} alt={name} fill className='object-cover' sizes='288px' unoptimized={!!fullImageUrl} />
                         </div>
                     ) : isFolder ? (
                         <FolderIcon className='size-16 text-primary' weight='duotone' />

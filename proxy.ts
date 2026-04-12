@@ -8,7 +8,7 @@ const CSP_HEADER = [
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' blob: data: https://blogimg.gumyo.net https://avatars.githubusercontent.com https://lh3.googleusercontent.com",
+    "img-src 'self' blob: data: https://blogimg.gumyo.net https://*.r2.cloudflarestorage.com https://avatars.githubusercontent.com https://lh3.googleusercontent.com",
     "font-src 'self'",
     "connect-src 'self' " + (process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:9999') + ' ' + (process.env.NEXT_PUBLIC_UPLOAD_SERVER_URL ?? '') + ' https://blogimg.gumyo.net https://*.r2.cloudflarestorage.com',
     "frame-ancestors 'none'",
