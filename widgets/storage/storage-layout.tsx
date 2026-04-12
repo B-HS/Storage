@@ -98,8 +98,8 @@ const StorageLayout: FC<StorageLayoutProps> = ({ userId }) => {
     const { data: treeFolders = [] } = useFolderList(userId)
     const { data: treeAssets } = useAssetList(userId, { folderId: 'root', page: 1, limit: 100, sort: 'name', order: 'asc' })
 
-    const { data: contentFolders = [] } = useFolderList(userId, currentFolderId ?? undefined)
-    const { data: contentAssetResult } = useAssetList(userId, {
+    const { data: contentFolders = [], isLoading: isFoldersLoading } = useFolderList(userId, currentFolderId ?? undefined)
+    const { data: contentAssetResult, isLoading: isAssetsLoading } = useAssetList(userId, {
         folderId: currentFolderId ?? 'root',
         page,
         limit: 20,
@@ -113,6 +113,8 @@ const StorageLayout: FC<StorageLayoutProps> = ({ userId }) => {
     const breadcrumb = folderDetail?.breadcrumb ?? []
     const contentAssets = contentAssetResult?.data ?? []
     const pagination = contentAssetResult?.pagination
+
+    const isContentLoading = isFoldersLoading || isAssetsLoading
 
     const items: DriveItem[] = [
         ...contentFolders.map((f) => ({ kind: 'folder' as const, data: f })),
@@ -271,9 +273,9 @@ const StorageLayout: FC<StorageLayoutProps> = ({ userId }) => {
 
                         <DropZone onDrop={handleUpload}>
                             {viewMode === 'grid' ? (
-                                <FileGrid items={items} onNavigateFolder={handleNavigateFolder} pagination={pagination} />
+                                <FileGrid items={items} onNavigateFolder={handleNavigateFolder} pagination={pagination} isLoading={isContentLoading} />
                             ) : (
-                                <FileList items={items} onNavigateFolder={handleNavigateFolder} pagination={pagination} />
+                                <FileList items={items} onNavigateFolder={handleNavigateFolder} pagination={pagination} isLoading={isContentLoading} />
                             )}
                         </DropZone>
                     </div>

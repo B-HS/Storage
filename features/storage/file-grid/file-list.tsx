@@ -13,12 +13,28 @@ type FileListProps = {
     items: DriveItem[]
     onNavigateFolder?: (folderId: string) => void
     pagination?: { page: number; limit: number; total: number }
+    isLoading?: boolean
 }
 
-const FileList: FC<FileListProps> = ({ items, onNavigateFolder, pagination }) => {
+const FileList: FC<FileListProps> = ({ items, onNavigateFolder, pagination, isLoading }) => {
     const { t } = useT()
     const { page, setPage } = useStorageStore()
     const totalPages = pagination ? Math.ceil(pagination.total / pagination.limit) : 1
+
+    if (isLoading) {
+        return (
+            <div>
+                {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className='flex items-center gap-3 border-b px-4 py-2 animate-pulse'>
+                        <div className='size-4 rounded bg-muted' />
+                        <div className='size-4 rounded bg-muted' />
+                        <div className='h-3 flex-1 rounded bg-muted' />
+                        <div className='h-3 w-16 rounded bg-muted' />
+                    </div>
+                ))}
+            </div>
+        )
+    }
 
     if (items.length === 0) {
         return <div className='flex flex-1 items-center justify-center py-20 text-sm text-muted-foreground'>{t.emptyFolder}</div>
