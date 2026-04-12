@@ -91,7 +91,6 @@ export const uploadFileWithProgress = async (file: File, folderId: string | null
         xhr.onerror = () => reject({ success: false, error: { code: 'NETWORK_ERROR', message: 'Network error' } } satisfies ApiErrorResponse)
 
         xhr.open('POST', `${UPLOAD_SERVER_URL}/upload`)
-        xhr.withCredentials = true
         xhr.send(formData)
     })
 }
