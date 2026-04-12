@@ -94,7 +94,7 @@ export const ko: TranslationKeys = {
     deleteSuccess: '삭제되었습니다.',
     uploadSuccess: '업로드가 완료되었습니다.',
 
-    errorFileTooLarge: '100MB 이하 파일만 업로드할 수 있습니다.',
+    errorFileTooLarge: '파일 크기가 업로드 제한을 초과했습니다.',
     errorQuotaExceeded: '저장 공간이 부족합니다.',
     errorDuplicateFile: '이미 업로드된 파일입니다.',
     errorFolderNameDuplicate: '같은 이름의 폴더가 이미 있습니다.',
@@ -107,6 +107,8 @@ export const ko: TranslationKeys = {
     errorBlockedExtension: '허용되지 않는 확장자입니다.',
     errorNetwork: '네트워크 오류가 발생했습니다.',
     errorUnauthorized: '로그인이 필요합니다.',
+    errorAllTiersFailed: '모든 스토리지에서 파일을 가져올 수 없습니다.',
+    errorUploadEventFailed: '업로드 처리 중 오류가 발생했습니다.',
 
     errorLoginFailed: '로그인에 실패했습니다.',
     errorRegisterFailed: '회원가입에 실패했습니다.',

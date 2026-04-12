@@ -94,7 +94,7 @@ export const jp: TranslationKeys = {
     deleteSuccess: '削除されました。',
     uploadSuccess: 'アップロードが完了しました。',
 
-    errorFileTooLarge: '100MB以下のファイルのみアップロードできます。',
+    errorFileTooLarge: 'ファイルサイズがアップロード制限を超えています。',
     errorQuotaExceeded: 'ストレージ容量が不足しています。',
     errorDuplicateFile: '既にアップロード済みのファイルです。',
     errorFolderNameDuplicate: '同じ名前のフォルダが既に存在します。',
@@ -107,6 +107,8 @@ export const jp: TranslationKeys = {
     errorBlockedExtension: '許可されていない拡張子です。',
     errorNetwork: 'ネットワークエラーが発生しました。',
     errorUnauthorized: 'ログインが必要です。',
+    errorAllTiersFailed: 'すべてのストレージからファイルを取得できません。',
+    errorUploadEventFailed: 'アップロード処理中にエラーが発生しました。',
 
     errorLoginFailed: 'ログインに失敗しました。',
     errorRegisterFailed: '会員登録に失敗しました。',

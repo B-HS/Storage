@@ -10,7 +10,7 @@ const CSP_HEADER = [
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' blob: data: https://blogimg.gumyo.net https://avatars.githubusercontent.com https://lh3.googleusercontent.com",
     "font-src 'self'",
-    "connect-src 'self' " + (process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:9999'),
+    "connect-src 'self' " + (process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:9999') + ' ' + (process.env.NEXT_PUBLIC_UPLOAD_SERVER_URL ?? ''),
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",

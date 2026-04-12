@@ -157,6 +157,7 @@ const StorageLayout: FC<StorageLayoutProps> = ({ userId }) => {
                 .catch((error) => {
                     store.updateUploadStatus(uploadId, 'error')
                     toast.error(getDriveErrorMessage(error, t))
+                    queryClient.invalidateQueries({ queryKey: DRIVE_QUERY_KEY.assets(userId) })
                 })
         })
     }

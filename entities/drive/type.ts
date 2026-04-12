@@ -26,6 +26,8 @@ export type DriveFolderUpdateInput = {
     parentId?: string | null
 }
 
+export type UploadStatus = 'preparing' | 'uploading' | 'ready' | 'failed'
+
 export type DriveAsset = {
     id: number
     originalName: string
@@ -33,6 +35,8 @@ export type DriveAsset = {
     sizeBytes: number
     folderId: string | null
     isPublic: boolean
+    storageTiers: string
+    uploadStatus: UploadStatus
     thumbnail: string | null
     createdAt: string
     updatedAt: string
@@ -52,6 +56,7 @@ export type DriveUploadResult = {
     sizeBytes: number
     folderId: string | null
     isPublic: false
+    storageTiers: string
     url: string
 }
 
@@ -81,6 +86,8 @@ export type DriveErrorCode =
     | 'DRIVE_FOLDER_NOT_FOUND'
     | 'DRIVE_FOLDER_CIRCULAR_REF'
     | 'DRIVE_FOLDER_NAME_DUPLICATE'
+    | 'DRIVE_ALL_TIERS_FAILED'
+    | 'DRIVE_UPLOAD_EVENT_FAILED'
     | 'UNAUTHORIZED'
 
 export type ApiSuccessResponse<T> = { success: true; data: T }

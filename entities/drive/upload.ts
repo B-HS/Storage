@@ -1,7 +1,7 @@
-import { API_BASE_URL, DRIVE_API_PATH } from '@shared/constant/api'
-import type { ApiErrorResponse, DriveUploadResult } from './type'
+import { API_BASE_URL, UPLOAD_SERVER_URL, DRIVE_API_PATH } from '@shared/constant/api'
+import type { ApiErrorResponse } from './type'
 
-const MAX_FILE_SIZE = 100 * 1024 * 1024
+const MAX_FILE_SIZE = Number(process.env.NEXT_PUBLIC_MAX_UPLOAD_SIZE_BYTES ?? 100 * 1024 * 1024 * 1024)
 
 const BLOCKED_EXTENSIONS = new Set([
     '.exe',
@@ -31,12 +31,43 @@ export const validateBeforeUpload = (file: File) => {
     return null
 }
 
-export const uploadFileWithProgress = (file: File, folderId: string | null, onProgress: (pct: number) => void) => {
-    return new Promise<DriveUploadResult>((resolve, reject) => {
+type PrepareResult = {
+    assetId: number
+    s3Key: string
+    uploadToken: string
+    uploadStatus: string
+}
+
+const prepareUpload = async (file: File, folderId: string | null): Promise<PrepareResult> => {
+    const res = await fetch(`${API_BASE_URL}${DRIVE_API_PATH.ASSETS}/prepare`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+            originalName: file.name,
+            mimeType: file.type,
+            sizeBytes: file.size,
+            folderId,
+        }),
+    })
+
+    const json = await res.json()
+    if (!res.ok || !json.success) {
+        throw json as ApiErrorResponse
+    }
+    return json.data as PrepareResult
+}
+
+export const uploadFileWithProgress = async (file: File, folderId: string | null, onProgress: (pct: number) => void) => {
+    const prepared = await prepareUpload(file, folderId)
+
+    return new Promise<{ success: true; assetId: number }>((resolve, reject) => {
         const xhr = new XMLHttpRequest()
         const formData = new FormData()
         formData.append('file', file)
-        if (folderId) formData.append('folderId', folderId)
+        formData.append('assetId', String(prepared.assetId))
+        formData.append('s3Key', prepared.s3Key)
+        formData.append('uploadToken', prepared.uploadToken)
 
         xhr.upload.onprogress = (e) => {
             if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100))
@@ -45,20 +76,21 @@ export const uploadFileWithProgress = (file: File, folderId: string | null, onPr
         xhr.onload = () => {
             try {
                 if (xhr.status < 200 || xhr.status >= 300) {
-                    reject({ success: false, error: { code: 'UPLOAD_FAILED', message: `Upload failed with status ${xhr.status}` } })
+                    const json = JSON.parse(xhr.responseText) as { error?: string }
+                    reject({ success: false, error: { code: 'UPLOAD_FAILED', message: json.error ?? `Upload failed with status ${xhr.status}` } } satisfies ApiErrorResponse)
                     return
                 }
-                const json = JSON.parse(xhr.responseText)
-                if (json.success) resolve(json.data)
-                else reject(json as ApiErrorResponse)
+                const json = JSON.parse(xhr.responseText) as { success: boolean; error?: string }
+                if (json.success) resolve({ success: true, assetId: prepared.assetId })
+                else reject({ success: false, error: { code: 'UPLOAD_FAILED', message: json.error ?? 'Upload failed' } } satisfies ApiErrorResponse)
             } catch {
-                reject({ success: false, error: { code: 'PARSE_ERROR', message: 'Failed to parse server response' } })
+                reject({ success: false, error: { code: 'PARSE_ERROR', message: 'Failed to parse server response' } } satisfies ApiErrorResponse)
             }
         }
 
-        xhr.onerror = () => reject({ success: false, error: { code: 'NETWORK_ERROR', message: 'Network error' } })
+        xhr.onerror = () => reject({ success: false, error: { code: 'NETWORK_ERROR', message: 'Network error' } } satisfies ApiErrorResponse)
 
-        xhr.open('POST', `${API_BASE_URL}${DRIVE_API_PATH.ASSETS}`)
+        xhr.open('POST', `${UPLOAD_SERVER_URL}/upload`)
         xhr.withCredentials = true
         xhr.send(formData)
     })

@@ -94,7 +94,7 @@ export const en: TranslationKeys = {
     deleteSuccess: 'Deleted successfully.',
     uploadSuccess: 'Upload complete.',
 
-    errorFileTooLarge: 'File must be under 100MB.',
+    errorFileTooLarge: 'File size exceeds the upload limit.',
     errorQuotaExceeded: 'Not enough storage space.',
     errorDuplicateFile: 'This file has already been uploaded.',
     errorFolderNameDuplicate: 'A folder with the same name already exists.',
@@ -107,6 +107,8 @@ export const en: TranslationKeys = {
     errorBlockedExtension: 'This file extension is not allowed.',
     errorNetwork: 'Network error.',
     errorUnauthorized: 'Please sign in to continue.',
+    errorAllTiersFailed: 'Failed to retrieve file from all storage tiers.',
+    errorUploadEventFailed: 'An error occurred while processing the upload.',
 
     errorLoginFailed: 'Login failed.',
     errorRegisterFailed: 'Registration failed.',

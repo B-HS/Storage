@@ -1,10 +1,12 @@
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:9999'
+export const UPLOAD_SERVER_URL = process.env.NEXT_PUBLIC_UPLOAD_SERVER_URL ?? API_BASE_URL
 
 export const DRIVE_API_PATH = {
     FOLDERS: '/api/drive/folders',
     FOLDER: (id: string) => `/api/drive/folders/${id}`,
     ASSETS: '/api/drive/assets',
     ASSET: (id: number) => `/api/drive/assets/${id}`,
+    ASSET_DOWNLOAD: (id: number) => `/api/drive/assets/${id}/download`,
     QUOTA: '/api/drive/quota',
 } as const
 

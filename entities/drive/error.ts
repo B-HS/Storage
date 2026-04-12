@@ -12,6 +12,8 @@ const ERROR_MESSAGE_MAP: ErrorMessageMap = {
     DRIVE_ASSET_NOT_FOUND: 'errorAssetNotFound',
     DRIVE_FOLDER_NOT_FOUND: 'errorFolderNotFound',
     DRIVE_INVALID_MIME_TYPE: 'errorInvalidMimeType',
+    DRIVE_ALL_TIERS_FAILED: 'errorAllTiersFailed',
+    DRIVE_UPLOAD_EVENT_FAILED: 'errorUploadEventFailed',
     UNAUTHORIZED: 'errorUnauthorized',
 }
 

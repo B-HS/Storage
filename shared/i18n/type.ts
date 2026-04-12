@@ -107,6 +107,8 @@ export type TranslationKeys = {
     errorBlockedExtension: string
     errorNetwork: string
     errorUnauthorized: string
+    errorAllTiersFailed: string
+    errorUploadEventFailed: string
 
     errorLoginFailed: string
     errorRegisterFailed: string
