@@ -1,6 +1,16 @@
-import { describe, expect, test } from 'bun:test'
+import { afterAll, describe, expect, test } from 'bun:test'
 
-import { validateBeforeUpload } from '@entities/drive/upload'
+const MAX_UPLOAD_SIZE_BYTES = 100 * 1024 * 1024
+const originalMaxUploadSizeEnv = process.env.NEXT_PUBLIC_MAX_UPLOAD_SIZE_BYTES
+
+process.env.NEXT_PUBLIC_MAX_UPLOAD_SIZE_BYTES = String(MAX_UPLOAD_SIZE_BYTES)
+
+const { validateBeforeUpload } = await import('@entities/drive/upload')
+
+afterAll(() => {
+    if (originalMaxUploadSizeEnv === undefined) delete process.env.NEXT_PUBLIC_MAX_UPLOAD_SIZE_BYTES
+    else process.env.NEXT_PUBLIC_MAX_UPLOAD_SIZE_BYTES = originalMaxUploadSizeEnv
+})
 
 describe('validateBeforeUpload', () => {
     test('정상 파일은 null을 반환한다', () => {
@@ -8,8 +18,8 @@ describe('validateBeforeUpload', () => {
         expect(validateBeforeUpload(file)).toBeNull()
     })
 
-    test('100MB 초과 파일은 DRIVE_FILE_TOO_LARGE를 반환한다', () => {
-        const file = new File([new ArrayBuffer(101 * 1024 * 1024)], 'big.zip')
+    test('설정된 상한을 초과하는 파일은 DRIVE_FILE_TOO_LARGE를 반환한다', () => {
+        const file = new File([new ArrayBuffer(MAX_UPLOAD_SIZE_BYTES + 1)], 'big.zip')
         expect(validateBeforeUpload(file)).toBe('DRIVE_FILE_TOO_LARGE')
     })
 
