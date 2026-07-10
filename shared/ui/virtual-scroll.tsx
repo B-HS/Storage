@@ -2,7 +2,11 @@
 
 import dynamic from 'next/dynamic'
 import { usePathname } from 'next/navigation'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+
+const FULL_PERCENT = 100
+const MIN_THUMB_HEIGHT_PERCENT = 10
+const SCROLL_HIDE_DELAY_MS = 1000
 
 const VirtualScrollComponent = () => {
     const path = usePathname()
@@ -11,42 +15,42 @@ const VirtualScrollComponent = () => {
     const [scrollData, setScrollData] = useState({ thumbHeight: 0, thumbTop: 0, isScrollable: false })
     const [isVisible, setIsVisible] = useState(true)
 
-    const handleScroll = useCallback(() => {
-        if (tickingRef.current) return
-        tickingRef.current = true
-
-        requestAnimationFrame(() => {
-            const windowHeight = window.innerHeight
-            const documentHeight = document.documentElement.scrollHeight
-            const scrollableHeight = documentHeight - windowHeight
-            const currentScrollPosition = window.scrollY
-
-            const thumbHeight = (windowHeight / documentHeight) * 100
-            const scrollPercentage = scrollableHeight > 0 ? (currentScrollPosition / scrollableHeight) * 100 : 0
-            const thumbTop = (scrollPercentage * (100 - thumbHeight)) / 100
-
-            setScrollData({
-                thumbHeight: Math.max(thumbHeight, 10),
-                thumbTop: Math.min(thumbTop, 100 - thumbHeight),
-                isScrollable: thumbHeight < 100,
-            })
-
-            setIsVisible(true)
-
-            if (timeoutRef.current) {
-                clearTimeout(timeoutRef.current)
-            }
-
-            const newTimeout = setTimeout(() => {
-                setIsVisible(false)
-            }, 1000)
-
-            timeoutRef.current = newTimeout
-            tickingRef.current = false
-        })
-    }, [])
-
     useEffect(() => {
+        const handleScroll = () => {
+            if (tickingRef.current) return
+            tickingRef.current = true
+
+            requestAnimationFrame(() => {
+                const windowHeight = window.innerHeight
+                const documentHeight = document.documentElement.scrollHeight
+                const scrollableHeight = documentHeight - windowHeight
+                const currentScrollPosition = window.scrollY
+
+                const thumbHeight = (windowHeight / documentHeight) * FULL_PERCENT
+                const scrollPercentage = scrollableHeight > 0 ? (currentScrollPosition / scrollableHeight) * FULL_PERCENT : 0
+                const thumbTop = (scrollPercentage * (FULL_PERCENT - thumbHeight)) / FULL_PERCENT
+
+                setScrollData({
+                    thumbHeight: Math.max(thumbHeight, MIN_THUMB_HEIGHT_PERCENT),
+                    thumbTop: Math.min(thumbTop, FULL_PERCENT - thumbHeight),
+                    isScrollable: thumbHeight < FULL_PERCENT,
+                })
+
+                setIsVisible(true)
+
+                if (timeoutRef.current) {
+                    clearTimeout(timeoutRef.current)
+                }
+
+                const newTimeout = setTimeout(() => {
+                    setIsVisible(false)
+                }, SCROLL_HIDE_DELAY_MS)
+
+                timeoutRef.current = newTimeout
+                tickingRef.current = false
+            })
+        }
+
         handleScroll()
         window.addEventListener('scroll', handleScroll)
         window.addEventListener('resize', handleScroll)
@@ -57,11 +61,7 @@ const VirtualScrollComponent = () => {
                 clearTimeout(timeoutRef.current)
             }
         }
-    }, [handleScroll])
-
-    useEffect(() => {
-        handleScroll()
-    }, [path, handleScroll])
+    }, [path])
 
     return (
         scrollData.isScrollable && (

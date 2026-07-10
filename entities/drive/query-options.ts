@@ -34,6 +34,13 @@ export const assetListOptions = (userId: string, params: AssetListParams) =>
         staleTime: 30_000,
     })
 
+export const assetDetailOptions = (userId: string, assetId: number) =>
+    queryOptions({
+        queryKey: DRIVE_QUERY_KEY.assetDetail(userId, assetId),
+        queryFn: () => api.getAssetDetail(assetId),
+        staleTime: 30_000,
+    })
+
 export const quotaOptions = (userId: string) =>
     queryOptions({
         queryKey: DRIVE_QUERY_KEY.quota(userId),

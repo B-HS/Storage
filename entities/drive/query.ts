@@ -10,9 +10,9 @@ import * as api from './api'
 import type { AssetListParams } from './api'
 import type { DriveFolder, DriveFolderCreateInput, DriveFolderUpdateInput, DriveAssetUpdateInput } from './type'
 import { getDriveErrorMessage, isUnauthorizedError } from './error'
-import { DRIVE_QUERY_KEY, folderListOptions, folderDetailOptions, assetListOptions, quotaOptions } from './query-options'
+import { DRIVE_QUERY_KEY, folderListOptions, folderDetailOptions, assetListOptions, assetDetailOptions, quotaOptions } from './query-options'
 
-export { DRIVE_QUERY_KEY, folderListOptions, folderDetailOptions, assetListOptions, quotaOptions }
+export { DRIVE_QUERY_KEY, folderListOptions, folderDetailOptions, assetListOptions, assetDetailOptions, quotaOptions }
 
 type DriveMutationOptions<TVariables, TData = void> = {
     mutationFn: (variables: TVariables) => Promise<TData>
@@ -43,6 +43,12 @@ export const useFolderDetail = (userId: string, folderId: string | null) =>
     })
 
 export const useAssetList = (userId: string, params: AssetListParams) => useQuery(assetListOptions(userId, params))
+
+export const useAssetDetail = (userId: string, assetId: number | null, enabled = true) =>
+    useQuery({
+        ...assetDetailOptions(userId, assetId!),
+        enabled: assetId !== null && enabled,
+    })
 
 export const useQuota = (userId: string) => useQuery(quotaOptions(userId))
 

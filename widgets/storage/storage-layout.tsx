@@ -5,17 +5,20 @@ import { useQueryClient } from '@tanstack/react-query'
 import { DndContext, DragOverlay, type DragEndEvent, type DragStartEvent, MouseSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { ListIcon } from '@phosphor-icons/react'
 import type { DriveItem } from '@entities/drive/type'
-import { getItemId, getItemName } from '@entities/drive/util'
+import { getItemId, getItemName, isImageAsset } from '@entities/drive/util'
 import { getDriveErrorMessage } from '@entities/drive/error'
+import { deleteAsset, deleteFolder } from '@entities/drive/api'
 import {
     DRIVE_QUERY_KEY,
     useFolderList,
     useFolderDetail,
     useAssetList,
+    useAssetDetail,
     useCreateFolder,
     useQuota,
     useMoveAsset,
     useMoveFolder,
+    useUpdateAsset,
 } from '@entities/drive/query'
 import { uploadFileWithProgress, validateBeforeUpload } from '@entities/drive/upload'
 import { useKeyboardShortcut } from '@shared/hook/use-keyboard-shortcut'
@@ -43,6 +46,8 @@ type StorageLayoutProps = {
     userId: string
 }
 
+const DELETE_PROGRESS_CLEAR_DELAY_MS = 2000
+
 const StorageLayout: FC<StorageLayoutProps> = ({ userId }) => {
     const store = useStorageStore()
     const {
@@ -52,8 +57,12 @@ const StorageLayout: FC<StorageLayoutProps> = ({ userId }) => {
         selectAll,
         clearSelection,
         setCurrentFolderId,
+        deleteTarget,
         setDeleteTarget,
+        setDeleteProgress,
         setRenameTarget,
+        detailItem,
+        setDetailItem,
         sortField,
         sortOrder,
         mimeFilter,
@@ -71,6 +80,7 @@ const StorageLayout: FC<StorageLayoutProps> = ({ userId }) => {
     )
     const moveAssetMutation = useMoveAsset(userId)
     const moveFolderMutation = useMoveFolder(userId)
+    const updateAssetMutation = useUpdateAsset(userId)
 
     const handleDragStart = (event: DragStartEvent) => {
         const item = event.active.data.current?.item as DriveItem | undefined
@@ -109,6 +119,56 @@ const StorageLayout: FC<StorageLayoutProps> = ({ userId }) => {
     })
     const { data: folderDetail } = useFolderDetail(userId, currentFolderId)
     const { data: quota } = useQuota(userId)
+
+    const detailAssetId = detailItem?.kind === 'asset' ? detailItem.data.id : null
+    const isDetailImage = detailItem ? isImageAsset(detailItem) : false
+    const { data: assetDetail } = useAssetDetail(userId, detailAssetId, isDetailImage)
+    const fullImageUrl = detailAssetId !== null && assetDetail?.id === detailAssetId ? assetDetail.url : null
+
+    const handleToggleDetailPublic = () => {
+        if (!detailItem || detailItem.kind !== 'asset') return
+        const asset = detailItem.data
+        const newIsPublic = !asset.isPublic
+        updateAssetMutation.mutate(
+            { assetId: asset.id, input: { isPublic: newIsPublic } },
+            { onSuccess: () => setDetailItem({ kind: 'asset', data: { ...asset, isPublic: newIsPublic } }) },
+        )
+    }
+
+    const isDeleteOpen = deleteTarget !== null && deleteTarget.length > 0
+    const deleteCount = deleteTarget?.length ?? 0
+    const deleteName = deleteCount === 1 ? getItemName(deleteTarget![0]) : t.selectedCount(deleteCount)
+
+    const handleDeleteConfirm = async () => {
+        if (!deleteTarget || deleteTarget.length === 0) return
+        const targets = [...deleteTarget]
+        setDeleteTarget(null)
+        clearSelection()
+
+        const total = targets.length
+        let completed = 0
+        let failed = 0
+
+        setDeleteProgress({ current: 0, total, failed: 0 })
+
+        for (const item of targets) {
+            try {
+                if (item.kind === 'folder') await deleteFolder(item.data.id)
+                else await deleteAsset(item.data.id)
+                completed++
+            } catch {
+                failed++
+            }
+            setDeleteProgress({ current: completed + failed, total, failed })
+        }
+
+        queryClient.invalidateQueries({ queryKey: DRIVE_QUERY_KEY.all(userId) })
+        queryClient.invalidateQueries({ queryKey: DRIVE_QUERY_KEY.quota(userId) })
+
+        if (failed > 0) toast.error(t.deletePartialFail(failed, total))
+
+        setTimeout(() => setDeleteProgress(null), DELETE_PROGRESS_CLEAR_DELAY_MS)
+    }
 
     const breadcrumb = folderDetail?.breadcrumb ?? []
     const contentAssets = contentAssetResult?.data ?? []
@@ -273,19 +333,46 @@ const StorageLayout: FC<StorageLayoutProps> = ({ userId }) => {
 
                         <DropZone onDrop={handleUpload}>
                             {viewMode === 'grid' ? (
-                                <FileGrid items={items} onNavigateFolder={handleNavigateFolder} pagination={pagination} isLoading={isContentLoading} />
+                                <FileGrid
+                                    items={items}
+                                    onNavigateFolder={handleNavigateFolder}
+                                    pagination={pagination}
+                                    isLoading={isContentLoading}
+                                />
                             ) : (
-                                <FileList items={items} onNavigateFolder={handleNavigateFolder} pagination={pagination} isLoading={isContentLoading} />
+                                <FileList
+                                    items={items}
+                                    onNavigateFolder={handleNavigateFolder}
+                                    pagination={pagination}
+                                    isLoading={isContentLoading}
+                                />
                             )}
                         </DropZone>
                     </div>
 
-                    <FileDetailPanel userId={userId} />
+                    {detailItem && (
+                        <FileDetailPanel
+                            detailItem={detailItem}
+                            fullImageUrl={fullImageUrl}
+                            onClose={() => setDetailItem(null)}
+                            onTogglePublic={handleToggleDetailPublic}
+                        />
+                    )}
 
                     <ImagePreview />
-                    <DeleteConfirmDialog userId={userId} />
+                    <DeleteConfirmDialog
+                        open={isDeleteOpen}
+                        name={deleteName}
+                        onConfirm={handleDeleteConfirm}
+                        onCancel={() => setDeleteTarget(null)}
+                    />
                     <RenameDialog userId={userId} />
-                    <CreateFolderDialog open={createFolderOpen} onOpenChange={setCreateFolderOpen} onConfirm={handleCreateFolder} isPending={createFolderMutation.isPending} />
+                    <CreateFolderDialog
+                        open={createFolderOpen}
+                        onOpenChange={setCreateFolderOpen}
+                        onConfirm={handleCreateFolder}
+                        isPending={createFolderMutation.isPending}
+                    />
 
                     <UploadToast />
 

@@ -6,7 +6,6 @@ export const DRIVE_API_PATH = {
     FOLDER: (id: string) => `/api/drive/folders/${id}`,
     ASSETS: '/api/drive/assets',
     ASSET: (id: number) => `/api/drive/assets/${id}`,
-    ASSET_DOWNLOAD: (id: number) => `/api/drive/assets/${id}/download`,
     QUOTA: '/api/drive/quota',
 } as const
 

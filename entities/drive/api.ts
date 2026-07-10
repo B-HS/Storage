@@ -50,6 +50,7 @@ export type AssetListParams = {
     limit?: number
     sort?: DriveSortField
     order?: DriveSortOrder
+    mimeType?: string
 }
 
 export const listAssets = async (params?: AssetListParams) => {
@@ -59,6 +60,7 @@ export const listAssets = async (params?: AssetListParams) => {
     if (params?.limit) query.set('limit', String(params.limit))
     if (params?.sort) query.set('sort', params.sort)
     if (params?.order) query.set('order', params.order)
+    if (params?.mimeType) query.set('mimeType', params.mimeType)
 
     const qs = query.toString()
     return serverFetchPaginated<DriveAsset>(`${DRIVE_API_PATH.ASSETS}${qs ? `?${qs}` : ''}`)
