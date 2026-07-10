@@ -13,9 +13,9 @@
 
 ## 작업 2 — mimeFilter dead path 버그 수정 (합의 9번)
 
-- [ ] a. hub 의 GET /api/drive/assets 쿼리 스키마에 mimeType 지원 여부 확인
-- [ ] b. 지원 시: AssetListParams · listAssets 에 mimeType 배선. 미지원 시: hub 쪽 스키마 확장과 함께 수정 (hub 작업으로 연계)
-- [ ] c. 테스트 + 커밋
+- [x] a. hub 의 GET /api/drive/assets 쿼리 스키마에 mimeType 지원 여부 확인
+- [x] b. 지원 시: AssetListParams · listAssets 에 mimeType 배선. 미지원 시: hub 쪽 스키마 확장과 함께 수정 (hub 작업으로 연계)
+- [x] c. 테스트 + 커밋
 
 ## 작업 3 — 보안 (Phase 2)
 
@@ -26,13 +26,14 @@
 ## 작업 4 — 컨벤션 리팩토링 (합의 11번)
 
 - [ ] a. zustand(shared/store/storage-store.ts) 제거 → React Context(provider) + useState 로 이전. 소비처 16개+ 파일 단계적 전환, 각 단계 테스트 유지
-- [ ] b. features 레이어 비즈니스 로직 위젯 이관: delete-confirm-dialog(직접 api 호출+무효화) · file-detail-panel(useEffect raw fetch → useQuery)
-- [ ] c. shared/ui/virtual-scroll.tsx useCallback 제거 + 매직넘버 상수화
-- [ ] d. dead constant 정리 (ASSET_DOWNLOAD)
-- [ ] e. 검증(tsc → build → test) + 커밋
+- [x] b. features 레이어 비즈니스 로직 위젯 이관: delete-confirm-dialog(직접 api 호출+무효화) · file-detail-panel(useEffect raw fetch → useQuery)
+- [x] c. shared/ui/virtual-scroll.tsx useCallback 제거 + 매직넘버 상수화
+- [x] d. dead constant 정리 (ASSET_DOWNLOAD)
+- [x] e. 검증(tsc → build → test) + 커밋
 
 ## 진행 로그
 
 - 2026-07-10: 정찰 완료(기준선 tsc PASS · test 101/1 fail — stale 테스트), 합의 문서 기록, 체크리스트 작성.
 - 2026-07-10: 작업 1 완료 — 의존성 최신화 · stale 업로드 테스트 env 기반 수정 · test 102 pass · 커밋 b5375a6.
 - 2026-07-10: 보안 감사 완료. production CSP unsafe-eval 제거+object-src none(test 102 pass). 커밋 2bf9fdb. 리포트: docs/security-audit-2026-07-10.md
+- 2026-07-10: 작업 2(mimeFilter, hub 지원 확인 후 배선) + 작업 4 부분(virtual-scroll useCallback, features 로직 이관, dead constant) 완료. test 102 pass. 커밋 adc76ab. zustand 제거는 대형이라 followUp.
