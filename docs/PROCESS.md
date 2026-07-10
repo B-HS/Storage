@@ -19,9 +19,9 @@
 
 ## 작업 3 — 보안 (Phase 2)
 
-- [ ] a. Workflow(opus·xhigh) 심층 보안 감사
-- [ ] b. 발견 이슈 중 심각·운영 지장 이슈 즉시 수정 (CSP unsafe-inline/unsafe-eval 하드닝 검토 포함)
-- [ ] c. 리포트 docs/ 기록 + 커밋
+- [x] a. Workflow(opus·xhigh) 심층 보안 감사
+- [x] b. 발견 이슈 중 심각·운영 지장 이슈 즉시 수정 (CSP unsafe-inline/unsafe-eval 하드닝 검토 포함)
+- [x] c. 리포트 docs/ 기록 + 커밋
 
 ## 작업 4 — 컨벤션 리팩토링 (합의 11번)
 
@@ -35,3 +35,4 @@
 
 - 2026-07-10: 정찰 완료(기준선 tsc PASS · test 101/1 fail — stale 테스트), 합의 문서 기록, 체크리스트 작성.
 - 2026-07-10: 작업 1 완료 — 의존성 최신화 · stale 업로드 테스트 env 기반 수정 · test 102 pass · 커밋 b5375a6.
+- 2026-07-10: 보안 감사 완료. production CSP unsafe-eval 제거+object-src none(test 102 pass). 커밋 2bf9fdb. 리포트: docs/security-audit-2026-07-10.md
