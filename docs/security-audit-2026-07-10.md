@@ -35,6 +35,13 @@
 - 근본원인 해결: Next 16 프로덕션 런타임은 브라우저 eval 을 요구하지 않는데(React Compiler 는 빌드타임, framer-motion·react-query·radix·zustand·better-auth 는 런타임 eval 미사용) CSP 가 무조건 'unsafe-eval' 을 허용해 XSS 완화가 약화돼 있었음. NODE_ENV 분기로 production 에서만 eval 을 차단해 근본 원인(불필요한 eval 허용)을 제거. Next 가 build 시 process.env.NODE_ENV 를 리터럴로 인라인하므로 production 번들에는 분기가 확정되어 baked-in 됨(빌드 번들 grep 으로 확인).
 - 파일: /Users/hyunseokbyun/storage/proxy.ts
 
+## 문서 검수 후속 상태 (2026-07-10)
+
+- 이 감사 이후 같은 날 리팩토링 커밋 adc76ab(features 로직 위젯 이관)이 들어가면서, 미수정으로 남은 STORAGE-002·003 의 코드 참조 위치가 이동했다. 발견 자체는 여전히 유효하며, 현재 코드 기준 위치만 아래로 갱신한다.
+  - STORAGE-002(isPublic 공개 토글 경고 부재, 미수정): 토글 핸들러가 `features/storage/file-detail-panel.tsx` 에서 presentational `onTogglePublic` prop 으로 바뀌었고, 실제 뮤테이션(`handleToggleDetailPublic`)은 `widgets/storage/storage-layout.tsx` 130-134 로 이관됨. 파일은 여전히 확인 다이얼로그·영구 공개 경고가 없다.
+  - STORAGE-003(server action 에러 리댁션, 미수정): throw 지점은 `shared/api/fetch.ts` 27행(`throw json as ApiErrorResponse`)으로 이동. 근본 상황(server action 경계에서 원시 에러 throw)은 그대로.
+- STORAGE-004 권고(shadcn 을 devDependencies 로 이동)는 미적용 상태다. `package.json` 에서 shadcn 은 여전히 dependencies 에 있다. postcss 는 8.5.16(devDependencies)로 상향 완료.
+
 ## 후속(followUps)
 
 - 'unsafe-inline' 을 nonce 전략으로 대체(Next 인라인 부트스트랩 스크립트에 per-request nonce 적용) — 이번 범위 밖으로 지시받아 미수행.

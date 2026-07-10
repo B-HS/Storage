@@ -19,3 +19,4 @@
 12. 사용 가능한 단계마다 커밋한다(사용자 지시로 커밋 승인됨). AI 트레일러 금지, push 는 별도 요청 시에만.
 13. 모든 major 업그레이드는 공식 문서(인터넷)를 확인한 후 진행한다.
 14. 각 기능(admin UI 개선 · /manage · AI 인프라 · 클라이언트 AI · weather UI)은 구현 전 요약 설계로 사용자 컨펌을 받는다.
+15. (11번 정정) storage 의 zustand(shared/store/storage-store.ts) 는 **제거하지 않고 유지**한다. 당초 11번에서 zustand 를 컨벤션 위반으로 보고 전면 리팩토링(React Context + useState 이전) 대상에 넣었으나, 사용자가 유지로 확정했다. 이에 맞춰 컨벤션(전역 상태 라이브러리 금지)도 조건부 허용으로 갱신되었다. 따라서 storage 는 zustand 를 계속 사용하며, 향후 이 이유로 zustand 제거 작업을 다시 계획하지 않는다.
